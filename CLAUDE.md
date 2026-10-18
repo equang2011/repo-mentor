@@ -102,7 +102,7 @@ Each challenge directory looks like this:
 
 Practice IDs are opaque (`p01`, `p02`, …). The demo is `demo-001` and lives in this repo under `demo/`.
 
-**manifest.json** includes at least: id; kind (demo or practice); origin (upstream-fix or synthetic); repo URL; license; buggy and fixed SHAs; Python version; install steps; the existing-test command; any deselected existing tests, each with a reason; the acceptance criteria (id, text, and the private test node ids each one maps to); estimated difficulty; time budget in minutes; and validation results. Mark which fields are public. Everything else is private.
+**manifest.json** includes at least: id; kind (demo or practice); origin (upstream-fix or synthetic); repo URL; license; buggy and fixed SHAs; Python version; install steps; the existing-test command; any deselected existing tests, each with a reason; the acceptance criteria (id, text, a `guard` flag, and the private test node ids each one maps to); estimated difficulty; time budget in minutes; and validation results. Mark which fields are public. Everything else is private.
 
 **ticket.md** is written as a customer who uses the library or CLI:
 
@@ -118,7 +118,9 @@ Practice IDs are opaque (`p01`, `p02`, …). The demo is `demo-001` and lives in
 - Exercise only public interfaces that exist at the buggy ref. Never import helpers that the fix introduced.
 - Assert the behavior described in the acceptance criteria, not implementation details, so any correct fix passes.
 - Include at least one variant of the ticket's example with different values, so a fix that special-cases the example fails.
-- Include nearby cases that already work, so a fix that breaks neighboring behavior fails.
+- Include nearby cases that already work, so a fix that breaks neighboring behavior fails. Put these under a **guard** acceptance criterion (`"guard": true` in the manifest), written in the ticket as behavior that must not change (for example "AC3: nothing else changes: …").
+- Guard and non-guard criteria are separate: every test belongs to exactly one criterion. Tests under a non-guard criterion target the bug and must fail at the buggy ref. Tests under a guard criterion must pass at both refs. At least one criterion must be non-guard.
+- Every non-guard acceptance criterion must have at least one test that fails at the buggy ref, so that criterion actually detects the bug.
 - Be deterministic, offline, and fast (seconds).
 - Run under the repo's own pytest configuration and fixtures.
 
@@ -130,8 +132,8 @@ Practice IDs are opaque (`p01`, `p02`, …). The demo is `demo-001` and lives in
 2. A fresh venv installs from lock.txt on the local Python.
 3. The existing suite passes at the buggy ref (minus documented deselections), on two runs.
 4. The buggy ref's existing suite also passes against the fixed ref's source. If the upstream fix changed an existing test because that test encoded the buggy behavior, deselect it with that reason or reject the challenge.
-5. Every private test fails at the buggy ref with a test failure (an assertion), not a collection, import, or fixture error. Another exception type is allowed only if the manifest explains why it is the behavioral symptom.
-6. Every private test passes at the fixed ref. Steps 5 and 6 each run three times to catch flakiness.
+5. At the buggy ref, every test under a non-guard criterion fails with a test failure (an assertion), not a collection, import, or fixture error. This also guarantees that every non-guard criterion has at least one failing test. Another exception type is allowed only if the manifest explains why it is the behavioral symptom (`private_tests.allowed_exceptions`). Every test under a guard criterion passes at the buggy ref, which proves it is a real guard and not a hidden bug check. Every private test must map to exactly one criterion; unmapped tests fail validation.
+6. Every private test, guard or not, passes at the fixed ref. Steps 5 and 6 each run three times to catch flakiness.
 7. End to end: `start` a throwaway session and `grade` it untouched, which must report FAIL. Then overlay the fixed ref's source and `grade` again, which must report PASS. This proves grading imports the candidate's copy and not some stale install.
 8. Leak check: the workspace has a single-commit git history, no private files, and no upstream issue number or URL.
 
