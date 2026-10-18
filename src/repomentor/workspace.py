@@ -29,7 +29,19 @@ DIAGNOSIS_TEMPLATE = """\
 
 ## How I verified it
 
+
+## Assistant usage
+
+- What I asked:
+- What helped:
+- What was wrong:
 """
+
+# Earlier templates, so the grader still recognizes an untouched diagnosis.md in older workspaces.
+LEGACY_DIAGNOSIS_TEMPLATES = (
+    "# Diagnosis\n\n## Root-cause hypothesis\n\n\n## Supporting evidence\n\n\n"
+    "## What I changed\n\n\n## How I verified it\n\n",
+)
 
 
 def _activate_hint() -> str:

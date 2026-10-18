@@ -3,8 +3,10 @@
 from datetime import datetime, timezone
 
 from repomentor import proc, sessions, trees
+from repomentor.grader import diagnosis_status
 from repomentor.models import Session
 from repomentor.pytest_runner import node_matches
+from repomentor.workspace import DIAGNOSIS_TEMPLATE, LEGACY_DIAGNOSIS_TEMPLATES
 
 
 def write(root, rel, text):
@@ -78,3 +80,18 @@ def test_child_env_scrubs_python_path(monkeypatch):
     monkeypatch.setenv("PYTHONPATH", "/stale/checkout")
     env = proc.child_env()
     assert "PYTHONPATH" not in env and env["PYTHONUTF8"] == "1"
+
+
+def test_diagnosis_template_has_assistant_usage():
+    assert "## Assistant usage" in DIAGNOSIS_TEMPLATE
+    for item in ("What I asked:", "What helped:", "What was wrong:"):
+        assert item in DIAGNOSIS_TEMPLATE
+
+
+def test_diagnosis_status_recognizes_current_and_legacy_templates(tmp_path):
+    assert diagnosis_status(tmp_path) == "missing"
+    for template in (DIAGNOSIS_TEMPLATE, *LEGACY_DIAGNOSIS_TEMPLATES):
+        (tmp_path / "diagnosis.md").write_text(template)
+        assert diagnosis_status(tmp_path) == "template only (not filled in)"
+    (tmp_path / "diagnosis.md").write_text(DIAGNOSIS_TEMPLATE + "The TOC loses ref links.\n")
+    assert diagnosis_status(tmp_path) == "present"

@@ -38,7 +38,7 @@ repomentor reveal <session_id>   # optional, after I'm done: shows the answer ke
 
 The workspace contains the buggy repository (with no git history), `ticket.md`, a `diagnosis.md` template, and short instructions for setting up and running tests. Each challenge targets 30–60 minutes for a developer with 1–2 years of Python experience.
 
-`diagnosis.md` is optional. Its headings are: root-cause hypothesis, supporting evidence, what I changed, and how I verified it. The grader reports whether the file exists and does not evaluate its contents.
+`diagnosis.md` is optional. Its headings are: root-cause hypothesis, supporting evidence, what I changed, how I verified it, and assistant usage (what I asked, what helped, what was wrong). The grader reports whether the file exists and does not evaluate its contents.
 
 ## 3. Spoiler rules (all sessions)
 

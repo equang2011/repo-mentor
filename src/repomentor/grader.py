@@ -27,7 +27,7 @@ from repomentor.challenges import Challenge, find_challenge
 from repomentor.errors import GraderError, RepoMentorError, ToolError, WorkspaceError
 from repomentor.models import CriterionResult, GradeReport, Manifest
 from repomentor.pytest_runner import PytestRun, node_matches, run_pytest
-from repomentor.workspace import DIAGNOSIS_TEMPLATE
+from repomentor.workspace import DIAGNOSIS_TEMPLATE, LEGACY_DIAGNOSIS_TEMPLATES
 
 PROBE_FILE = "test_zz_repomentor_probe.py"
 PROBE_SOURCE = '''\
@@ -97,7 +97,8 @@ def diagnosis_status(ws: Path) -> str:
     if not path.is_file():
         return "missing"
     text = path.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
-    return "template only (not filled in)" if text.strip() == DIAGNOSIS_TEMPLATE.strip() else "present"
+    templates = {t.strip() for t in (DIAGNOSIS_TEMPLATE, *LEGACY_DIAGNOSIS_TEMPLATES)}
+    return "template only (not filled in)" if text.strip() in templates else "present"
 
 
 def _deselect_args(manifest: Manifest) -> list[str]:
