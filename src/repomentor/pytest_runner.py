@@ -104,7 +104,9 @@ def run_pytest(
         tmp_path = Path(tmp)
         (tmp_path / f"{PLUGIN_NAME}.py").write_text(PLUGIN_SOURCE, encoding="utf-8")
         results_file = tmp_path / "results.json"
-        cmd = [python, "-m", "pytest", "-p", PLUGIN_NAME, "-p", "no:cacheprovider", "-q", *args]
+        # --rootdir pins node ids to repo-relative paths, matching manifests' test ids.
+        cmd = [python, "-m", "pytest", "-p", PLUGIN_NAME, "-p", "no:cacheprovider", "-q",
+               "--rootdir", str(repo), *args]
         result = proc.run(
             cmd,
             cwd=repo,

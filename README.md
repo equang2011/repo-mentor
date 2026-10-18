@@ -43,6 +43,19 @@ Workspaces and grading use separate directories and separate virtualenvs. That i
 **spoiler boundary, not a security sandbox**: challenge code runs as you, with your
 permissions. Only use vetted public repositories.
 
+## How grading works
+
+`grade` copies your `repo/` (without `.git`, venvs, and caches) to a temp directory and
+puts back the original test files, so edits to existing tests don't count and new test
+files are ignored. It then adds the hidden tests, builds a fresh venv from the lock, and
+installs the package from that copy. Before running anything, it checks through pytest
+that the package is imported from the copy. The report lists acceptance criteria as
+PASS/FAIL, any existing tests that now fail, your diff stats, and whether you filled in
+`diagnosis.md`. Exit codes: 0 PASS, 1 FAIL, 3 grader error (not your fault).
+
+All challenge processes run in Python UTF-8 mode (`PYTHONUTF8=1`) with `PYTHONPATH`
+cleared. Set `PYTHONUTF8=1` in your workspace shell too (the workspace README shows how).
+
 ## Practice protocol
 
 1. Timebox to the challenge's budget (shown by `list`).
