@@ -1,9 +1,16 @@
 {
-  "schema_version": 1,
   "id": "demo-001",
   "kind": "demo",
   "origin": "upstream-fix",
-  "public_fields": ["id", "kind", "repo.name", "difficulty", "time_budget_minutes", "python_version", "package.version"],
+  "public_fields": [
+    "id",
+    "kind",
+    "repo.name",
+    "difficulty",
+    "time_budget_minutes",
+    "python_version",
+    "package.version"
+  ],
   "repo": {
     "name": "mistune",
     "url": "https://github.com/lepture/mistune.git",
@@ -11,14 +18,27 @@
     "source_file_count": 35,
     "source_count_command": "find src/mistune -name '*.py' | wc -l  (at the buggy ref)"
   },
-  "package": {"import_name": "mistune", "version": "3.1.4"},
+  "package": {
+    "import_name": "mistune",
+    "version": "3.1.4"
+  },
   "buggy_sha": "c85632528f6f3d9d974bfae300716ac997a8d2c1",
   "fixed_sha": "a0a0148af57970c62f6fb437674f88753522ef51",
   "python_version": "3.13",
-  "install": {"lock_file": "lock.txt", "pip_args": ["-e", "."]},
+  "install": {
+    "lock_file": "lock.txt",
+    "pip_args": [
+      "-e",
+      "."
+    ]
+  },
   "existing_tests": {
-    "pytest_args": ["tests"],
-    "test_paths": ["tests"],
+    "pytest_args": [
+      "tests"
+    ],
+    "test_paths": [
+      "tests"
+    ],
     "deselect": [],
     "timeout_seconds": 300
   },
@@ -37,7 +57,8 @@
         "test_hook_collapsed_and_shortcut_reference_links",
         "test_hook_reference_label_is_case_insensitive",
         "test_hook_rendered_toc_html"
-      ]
+      ],
+      "guard": false
     },
     {
       "id": "AC2",
@@ -45,18 +66,19 @@
       "tests": [
         "test_rst_toc_directive_reference_link",
         "test_fenced_toc_directive_reference_link"
-      ]
+      ],
+      "guard": false
     },
     {
       "id": "AC3",
       "text": "Nothing else changes: other inline formatting is stripped, undefined references stay literal, heading HTML/ids and level options are unchanged.",
-      "guard": true,
       "tests": [
         "test_guard_other_inline_formatting_is_stripped",
         "test_guard_undefined_reference_stays_literal",
         "test_guard_heading_html_and_ids_unchanged",
         "test_guard_toc_levels_respected"
-      ]
+      ],
+      "guard": true
     }
   ],
   "difficulty": "easy",
@@ -65,5 +87,54 @@
     "issue_url": "https://github.com/lepture/mistune/issues/426",
     "fix_url": "https://github.com/lepture/mistune/commit/a0a0148af57970c62f6fb437674f88753522ef51"
   },
-  "validation": null
+  "validation": {
+    "status": "passed",
+    "validated_at": "2026-10-18T20:55:53+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "harness_version": "0.1.0",
+    "checks": [
+      {
+        "step": 1,
+        "name": "repo, SHAs, license, files",
+        "detail": "BSD-3-Clause, buggy c85632528f, fixed a0a0148af5"
+      },
+      {
+        "step": 2,
+        "name": "fresh venv from lock",
+        "detail": "Python 3.13.7, lock.txt"
+      },
+      {
+        "step": 3,
+        "name": "existing suite at buggy ref",
+        "detail": "957 passed x2"
+      },
+      {
+        "step": 4,
+        "name": "buggy ref's suite against fixed source",
+        "detail": "957 passed x1"
+      },
+      {
+        "step": 5,
+        "name": "private tests fail at buggy ref",
+        "detail": "10 private tests as expected at the buggy ref x3"
+      },
+      {
+        "step": 6,
+        "name": "private tests pass at fixed ref",
+        "detail": "10 private tests as expected at the fixed ref x3"
+      },
+      {
+        "step": 7,
+        "name": "end to end: start, grade untouched (FAIL), overlay fix, grade (PASS)",
+        "detail": "untouched FAIL, fixed PASS"
+      },
+      {
+        "step": 8,
+        "name": "leak check",
+        "detail": "one commit, no private files, no upstream references"
+      }
+    ]
+  },
+  "schema_version": 1
 }

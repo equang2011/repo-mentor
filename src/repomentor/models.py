@@ -391,7 +391,7 @@ class GradeReport:
     existing_failed: int
     newly_failing: list[str]
     diff: DiffStats
-    diagnosis_present: bool
+    diagnosis: str  # present | template only (not filled in) | missing
     verdict: str  # PASS | FAIL
     notes: list[str] = field(default_factory=list)
 

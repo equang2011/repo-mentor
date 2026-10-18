@@ -17,7 +17,9 @@ def pack_dir() -> Path:
 
 
 def sessions_dir() -> Path:
-    return home() / "sessions"
+    """$REPOMENTOR_SESSIONS, default $REPOMENTOR_HOME/sessions (validate uses a throwaway one)."""
+    value = os.environ.get("REPOMENTOR_SESSIONS")
+    return Path(value).expanduser() if value else home() / "sessions"
 
 
 def repo_cache_dir() -> Path:
