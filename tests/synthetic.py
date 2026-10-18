@@ -143,6 +143,17 @@ def write_challenge(root: Path, manifest: dict, private_tests: str = PRIVATE_TES
     return d
 
 
+def write_synthetic_challenge(root: Path, url: str, buggy: str, fixed: str) -> Path:
+    """The same bug as a synthetic challenge: clean commit FIXED plus an injection patch."""
+    manifest = challenge_manifest(url, fixed, fixed, origin="synthetic",
+                                  injection_patch="private/injection.patch", validation=None)
+    d = write_challenge(root, manifest)
+    patch = subprocess.run(["git", "-c", "core.autocrlf=false", "diff", fixed, buggy, "--", "src"],
+                           cwd=url, check=True, capture_output=True).stdout
+    (d / "private" / "injection.patch").write_bytes(patch)  # bytes: no newline translation
+    return d
+
+
 # --- fake installers -------------------------------------------------------
 
 DEV_SITE = sysconfig.get_paths()["purelib"]  # where this test run's pytest is installed

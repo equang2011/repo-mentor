@@ -182,6 +182,31 @@ def test_validate_passes_and_records(tmp_path, upstream, fake_envs):
     assert json.loads((d / "manifest.json").read_text())["validation"]["status"] == "passed"
 
 
+def test_synthetic_challenge_validates_starts_and_reveals(tmp_path, upstream, fake_envs):
+    d = synthetic.write_synthetic_challenge(tmp_path / "demo", *upstream)
+    checks = validate.validate("demo-001", log=lambda _: None)
+    assert [c.step for c in checks] == [1, 2, 3, 4, 5, 6, 7, 8]
+
+    s = workspace.start("demo-001", when=WHEN)
+    src = Path(s.workspace) / "repo" / "src" / "minicalc" / "__init__.py"
+    assert src.read_text() == synthetic.BUGGY_SRC  # injection applied
+    assert not list(Path(s.workspace).rglob("injection.patch"))
+
+    text = reveal.reveal_text(s.id)
+    assert "-        return low" in text and "+        return high" in text  # reversed injection
+    assert json.loads((d / "manifest.json").read_text())["validation"]["status"] == "passed"
+
+
+def test_synthetic_challenge_requires_matching_shas(tmp_path, upstream, fake_envs):
+    url, buggy, fixed = upstream
+    d = synthetic.write_synthetic_challenge(tmp_path / "demo", url, buggy, fixed)
+    data = json.loads((d / "manifest.json").read_text())
+    data["buggy_sha"] = buggy
+    (d / "manifest.json").write_text(json.dumps(data))
+    with pytest.raises(ValidationError, match="step 1 .*clean commit as both"):
+        validate.validate("demo-001", log=lambda _: None)
+
+
 def test_validate_rejects_private_test_that_passes_at_buggy_ref(tmp_path, upstream, fake_envs):
     weak = synthetic.PRIVATE_TESTS.replace("assert clamp(11, 0, 10) == 10\n    assert clamp(99, -5, 7) == 7",
                                            "assert clamp(5, 0, 10) == 5")
