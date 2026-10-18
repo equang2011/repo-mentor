@@ -81,6 +81,7 @@ Real fixes give realistic bugs and a known-correct repair. They also can't leak 
 - A domain that's understandable without specialist knowledge, with real interaction between modules.
 - A history of fix commits linked to issues.
 - Practice repos must differ from the demo repo. Prefer variety, for example a CLI tool, a parsing or transformation library, and something stateful.
+- Practice repos must not share a domain with the demo repo. The demo is mistune (a Markdown parser), so no other Markdown parsers or renderers.
 
 For every challenge, record the repo URL, license, full commit SHAs, Python version, and a pinned dependency lock (`pip freeze` at the buggy ref).
 

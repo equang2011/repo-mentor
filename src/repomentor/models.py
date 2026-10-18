@@ -68,6 +68,14 @@ class _Reader:
             raise ManifestError(f"'{self._path(key)}' must be a positive integer")
         return value
 
+    def bool(self, key: str, default: bool = False) -> bool:
+        value = self._get(key, required=False)
+        if value is None:
+            return default
+        if not isinstance(value, bool):
+            raise ManifestError(f"'{self._path(key)}' must be true or false")
+        return value
+
     def str_list(self, key: str, required: bool = True) -> list[str]:
         value = self._get(key, required)
         if value is None:
@@ -139,10 +147,19 @@ class ExistingTests:
 
 
 @dataclass(frozen=True)
+class AllowedException:
+    """A non-assertion exception accepted as the behavioral symptom at the buggy ref."""
+
+    type: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class PrivateTests:
     file: str  # relative to the challenge directory
     dest: str  # where it is placed inside the repo, so the repo's conftest applies
     timeout_seconds: int
+    allowed_exceptions: list[AllowedException] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -150,6 +167,9 @@ class AcceptanceCriterion:
     id: str
     text: str
     tests: list[str]  # test names inside the private file, e.g. "test_foo" or "TestX::test_y"
+    # Guard criteria cover neighboring behavior that already works: their tests
+    # must PASS at the buggy ref. All other criteria's tests must FAIL there.
+    guard: bool = False
 
 
 @dataclass(frozen=True)
@@ -256,10 +276,16 @@ class Manifest:
             file=pt_r.str("file"),
             dest=pt_r.str("dest"),
             timeout_seconds=pt_r.int("timeout_seconds", required=False, default=300),
+            allowed_exceptions=[
+                AllowedException(type=e.str("type"), reason=e.str("reason"))
+                for e in pt_r.obj_list("allowed_exceptions", required=False)
+            ],
         )
 
         criteria = [
-            AcceptanceCriterion(id=a.str("id"), text=a.str("text"), tests=a.str_list("tests"))
+            AcceptanceCriterion(
+                id=a.str("id"), text=a.str("text"), tests=a.str_list("tests"), guard=a.bool("guard")
+            )
             for a in r.obj_list("acceptance_criteria")
         ]
         _check_criteria(criteria)
@@ -313,6 +339,11 @@ def _check_criteria(criteria: list[AcceptanceCriterion]) -> None:
         seen.add(ac.id)
         if not ac.tests:
             raise ManifestError(f"acceptance criterion {ac.id} maps to no private tests")
+    if all(ac.guard for ac in criteria):
+        raise ManifestError("at least one acceptance criterion must not be a guard")
+    all_tests = [t for ac in criteria for t in ac.tests]
+    if len(all_tests) != len(set(all_tests)):
+        raise ManifestError("each private test may map to only one acceptance criterion")
 
 
 @dataclass

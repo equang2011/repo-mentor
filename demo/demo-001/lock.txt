@@ -1,0 +1,9 @@
+# pip freeze --all at the buggy ref on Python 3.13.7 (Windows), minus pip and mistune itself.
+# setuptools is pinned because the harness installs with --no-build-isolation.
+colorama==0.4.6
+iniconfig==2.3.1
+packaging==26.3
+pluggy==1.7.0
+Pygments==2.21.0
+pytest==9.1.1
+setuptools==84.0.0
