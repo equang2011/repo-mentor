@@ -75,6 +75,15 @@ def test_grade_untouched_fails_and_fix_passes(challenge_dir, fake_envs):
     assert saved and json.loads(saved[-1].read_text())["verdict"] == "PASS"
 
 
+def test_install_env_reaches_workspace_and_grading_installs(tmp_path, upstream, fake_envs):
+    data = synthetic.challenge_manifest(*upstream)
+    data["install"]["env"] = {"PRETEND_VERSION": "9.9.9"}
+    synthetic.write_challenge(tmp_path / "demo", data)
+    s = workspace.start("demo-001", when=WHEN)
+    grader.grade(s.id)
+    assert fake_envs.install_envs == [{"PRETEND_VERSION": "9.9.9"}] * 2
+
+
 def test_grade_restores_tests_and_ignores_new_ones(challenge_dir, fake_envs):
     s = workspace.start("demo-001", when=WHEN)
     fix_workspace(s)

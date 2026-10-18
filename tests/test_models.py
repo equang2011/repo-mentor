@@ -23,6 +23,14 @@ def test_round_trip():
     assert Manifest.from_dict(m.to_dict()) == m
 
 
+def test_install_env_defaults_empty_and_round_trips():
+    assert Manifest.from_dict(manifest_dict()).install.env == {}
+    install = {"lock_file": "lock.txt", "pip_args": ["-e", "."], "env": {"PRETEND_VERSION": "1.2.3"}}
+    m = Manifest.from_dict(manifest_dict(install=install))
+    assert m.install.env == {"PRETEND_VERSION": "1.2.3"}
+    assert Manifest.from_dict(m.to_dict()) == m
+
+
 @pytest.mark.parametrize(
     "overrides, message",
     [
@@ -37,6 +45,8 @@ def test_round_trip():
         ({"schema_version": 99}, "unsupported schema_version"),
         ({"origin": "synthetic"}, "injection_patch"),
         ({"kind": "practice", "id": "sqlparse-bug-1"}, "must be opaque"),
+        ({"install": {"lock_file": "lock.txt", "pip_args": [], "env": {"X": 1}}}, "mapping names to strings"),
+        ({"install": {"lock_file": "lock.txt", "pip_args": [], "env": ["X=1"]}}, "mapping names to strings"),
     ],
 )
 def test_invalid_manifest_rejected(overrides, message):

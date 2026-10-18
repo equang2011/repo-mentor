@@ -100,7 +100,9 @@ class Validator:
     def build_env(self, venv: Path, repo: Path) -> Path:
         step, name = 2, "fresh venv from lock"
         try:
-            python = envs.build_env(venv, self.m.python_version, self.challenge.lock_path, repo, self.m.install.pip_args)
+            python = envs.build_env(
+                venv, self.m.python_version, self.challenge.lock_path, repo, self.m.install.pip_args, self.m.install.env
+            )
         except RepoMentorError as exc:
             raise _Fail(step, name, str(exc)) from None
         version = proc.run([python, "-c", "import platform; print(platform.python_version())"], timeout=60)
@@ -110,7 +112,7 @@ class Validator:
 
     def _reinstall(self, step: int, name: str, python: Path, repo: Path) -> None:
         try:
-            envs.install_package(python, repo, self.m.install.pip_args)
+            envs.install_package(python, repo, self.m.install.pip_args, self.m.install.env)
             grader.assert_imports_from(python, repo, self.m)
         except RepoMentorError as exc:
             raise _Fail(step, name, str(exc)) from None

@@ -84,6 +84,16 @@ class _Reader:
             raise ManifestError(f"'{self._path(key)}' must be a list of non-empty strings")
         return list(value)
 
+    def str_dict(self, key: str) -> dict[str, str]:
+        value = self._get(key, required=False)
+        if value is None:
+            return {}
+        if not isinstance(value, dict) or not all(
+            isinstance(k, str) and k and isinstance(v, str) for k, v in value.items()
+        ):
+            raise ManifestError(f"'{self._path(key)}' must be an object mapping names to strings")
+        return dict(value)
+
     def obj(self, key: str, required: bool = True) -> "_Reader | None":
         value = self._get(key, required)
         if value is None:
@@ -130,6 +140,9 @@ class PackageInfo:
 class InstallSpec:
     lock_file: str  # relative to the challenge directory
     pip_args: list[str]  # appended to `pip install --no-deps`, run from the repo root
+    # Extra environment for installing the package, e.g. a pretend version for builds
+    # that derive it from git tags (exported trees have no history).
+    env: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -256,7 +269,9 @@ class Manifest:
         package = PackageInfo(import_name=pkg_r.str("import_name"), version=pkg_r.str("version"))
 
         inst_r = r.obj("install")
-        install = InstallSpec(lock_file=inst_r.str("lock_file"), pip_args=inst_r.str_list("pip_args"))
+        install = InstallSpec(
+            lock_file=inst_r.str("lock_file"), pip_args=inst_r.str_list("pip_args"), env=inst_r.str_dict("env")
+        )
 
         ex_r = r.obj("existing_tests")
         existing = ExistingTests(

@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Mapping
 
 from repomentor import proc
 from repomentor.errors import ToolError, WorkspaceError
@@ -53,12 +54,13 @@ def install_lock(python: Path, lock: Path) -> None:
         raise WorkspaceError(f"installing {lock.name} failed. Last pip output:\n{result.tail()}")
 
 
-def install_package(python: Path, repo: Path, pip_args: list[str]) -> None:
-    """Install the challenge package from `repo` (normally editable)."""
+def install_package(python: Path, repo: Path, pip_args: list[str], env: Mapping[str, str] | None = None) -> None:
+    """Install the challenge package from `repo` (normally editable), with optional extra `env`."""
     result = proc.run(
         [python, "-m", "pip", "install", "--no-deps", "--no-build-isolation", "--quiet", *pip_args],
         cwd=repo,
         timeout=PIP_TIMEOUT,
+        env=env,
     )
     if not result.ok:
         raise WorkspaceError(f"installing the package from {repo} failed. Last pip output:\n{result.tail()}")
@@ -101,9 +103,11 @@ def add_activation_env(venv: Path, variables: dict[str, str]) -> list[Path]:
     return changed
 
 
-def build_env(venv: Path, python_version: str, lock: Path, repo: Path, pip_args: list[str]) -> Path:
+def build_env(
+    venv: Path, python_version: str, lock: Path, repo: Path, pip_args: list[str], env: Mapping[str, str] | None = None
+) -> Path:
     """Create `venv`, install the lock, then the package from `repo`. Returns the venv's python."""
     python = create_venv(venv, python_version)
     install_lock(python, lock)
-    install_package(python, repo, pip_args)
+    install_package(python, repo, pip_args, env)
     return python

@@ -129,7 +129,7 @@ def _build_workspace(challenge: Challenge, bare: Path, ws: Path) -> None:
     (ws / "diagnosis.md").write_text(DIAGNOSIS_TEMPLATE, encoding="utf-8")
     (ws / "README.md").write_text(workspace_readme(challenge), encoding="utf-8")
     try:
-        envs.build_env(ws / ".venv", m.python_version, challenge.lock_path, repo, m.install.pip_args)
+        envs.build_env(ws / ".venv", m.python_version, challenge.lock_path, repo, m.install.pip_args, m.install.env)
     except RepoMentorError as exc:
         raise WorkspaceError(f"setting up the workspace venv failed: {exc}") from None
     envs.add_activation_env(ws / ".venv", WORKSPACE_ENV)

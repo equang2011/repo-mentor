@@ -162,7 +162,7 @@ def _grade_in(tmp: Path, session, challenge: Challenge, repo: Path, ws: Path, wh
     existing_passed = existing_failed = 0
     newly_failing: list[str] = []
     try:
-        envs.install_package(python, candidate, m.install.pip_args)
+        envs.install_package(python, candidate, m.install.pip_args, m.install.env)
     except WorkspaceError as exc:
         notes.append(f"Your copy of the package failed to install, so no tests could run.\n{exc}")
         criteria = [CriterionResult(ac.id, ac.text, False) for ac in m.acceptance_criteria]

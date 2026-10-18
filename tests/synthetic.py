@@ -170,6 +170,7 @@ class FakeEnvs:
 
     def __init__(self) -> None:
         self.package_override: Path | None = None  # set to simulate a stale install
+        self.install_envs: list[dict[str, str]] = []  # env passed to each install_package call
 
     def create_venv(self, venv: Path, python_version: str) -> Path:
         subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(venv)], check=True)
@@ -179,7 +180,8 @@ class FakeEnvs:
         venv = python.parent.parent
         (site_packages(venv) / "_fake_lock.pth").write_text(DEV_SITE + "\n")
 
-    def install_package(self, python: Path, repo: Path, pip_args: list[str]) -> None:
+    def install_package(self, python: Path, repo: Path, pip_args: list[str], env=None) -> None:
+        self.install_envs.append(dict(env or {}))
         venv = python.parent.parent
         target = self.package_override or repo
         (site_packages(venv) / "_fake_pkg.pth").write_text(str((target / "src").resolve()) + "\n")
