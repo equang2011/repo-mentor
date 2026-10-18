@@ -64,6 +64,43 @@ def install_package(python: Path, repo: Path, pip_args: list[str]) -> None:
         raise WorkspaceError(f"installing the package from {repo} failed. Last pip output:\n{result.tail()}")
 
 
+_SIGNATURE_MARKER = b"# SIG # Begin signature block"
+
+# Activation script name -> (comment prefix, line template). Missing scripts are skipped.
+_ACTIVATE_LINES = {
+    "activate": ("#", 'export {name}="{value}"'),
+    "activate.bat": ("rem", 'set "{name}={value}"'),
+    "Activate.ps1": ("#", '$env:{name} = "{value}"'),
+    "activate.fish": ("#", 'set -gx {name} "{value}"'),
+    "activate.csh": ("#", 'setenv {name} "{value}"'),
+}
+
+
+def add_activation_env(venv: Path, variables: dict[str, str]) -> list[Path]:
+    """Make the venv's activation scripts export `variables`. Returns the scripts changed.
+
+    Edits bytes so each script keeps its own line endings (bash breaks on CRLF). A
+    PowerShell signature block, if present, is dropped: the edit would invalidate it.
+    """
+    scripts_dir = venv_python(venv).parent
+    changed = []
+    for name, (comment, template) in _ACTIVATE_LINES.items():
+        script = scripts_dir / name
+        if not script.is_file():
+            continue
+        data = script.read_bytes()
+        nl = b"\r\n" if b"\r\n" in data else b"\n"
+        if _SIGNATURE_MARKER in data:
+            data = data[: data.index(_SIGNATURE_MARKER)]
+        lines = [f"{comment} Added by RepoMentor: match the grader's environment.".encode()]
+        lines += [template.format(name=k, value=v).encode() for k, v in variables.items()]
+        if not data.endswith(nl):
+            data += nl
+        script.write_bytes(data + nl.join(lines) + nl)
+        changed.append(script)
+    return changed
+
+
 def build_env(venv: Path, python_version: str, lock: Path, repo: Path, pip_args: list[str]) -> Path:
     """Create `venv`, install the lock, then the package from `repo`. Returns the venv's python."""
     python = create_venv(venv, python_version)

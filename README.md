@@ -54,7 +54,7 @@ PASS/FAIL, any existing tests that now fail, your diff stats, and whether you fi
 `diagnosis.md`. Exit codes: 0 PASS, 1 FAIL, 3 grader error (not your fault).
 
 All challenge processes run in Python UTF-8 mode (`PYTHONUTF8=1`) with `PYTHONPATH`
-cleared. Set `PYTHONUTF8=1` in your workspace shell too (the workspace README shows how).
+cleared. Activating a workspace's `.venv` sets `PYTHONUTF8=1` for you.
 
 ## Practice protocol
 

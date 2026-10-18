@@ -12,6 +12,9 @@ from repomentor.challenges import Challenge, find_challenge
 from repomentor.errors import ChallengeError, RepoMentorError, WorkspaceError
 from repomentor.models import Session
 
+# Set by the workspace venv's activation scripts, matching what the grader uses.
+WORKSPACE_ENV = {"PYTHONUTF8": "1"}
+
 DIAGNOSIS_TEMPLATE = """\
 # Diagnosis
 
@@ -38,7 +41,6 @@ def _activate_hint() -> str:
 def workspace_readme(challenge: Challenge) -> str:
     m = challenge.manifest
     test_cmd = "python -m pytest " + " ".join(m.existing_tests.pytest_args)
-    utf8 = '$env:PYTHONUTF8 = "1"' if os.name == "nt" else "export PYTHONUTF8=1"
     return f"""\
 # Workspace for {m.id}
 
@@ -52,10 +54,12 @@ def workspace_readme(challenge: Challenge) -> str:
 
 ```
 {_activate_hint()}
-{utf8}           # the grader runs in UTF-8 mode; do the same
 cd repo
 {test_cmd}
 ```
+
+Activating the venv also sets `PYTHONUTF8=1`, which runs Python in UTF-8 mode like
+the grader does. `deactivate` does not unset it; open a new shell if you need to.
 
 Time budget: {m.time_budget_minutes} minutes. When you're done, run `repomentor grade <session-id>`.
 The grader restores the original test files and ignores new test files, so write any
@@ -116,3 +120,4 @@ def _build_workspace(challenge: Challenge, bare: Path, ws: Path) -> None:
         envs.build_env(ws / ".venv", m.python_version, challenge.lock_path, repo, m.install.pip_args)
     except RepoMentorError as exc:
         raise WorkspaceError(f"setting up the workspace venv failed: {exc}") from None
+    envs.add_activation_env(ws / ".venv", WORKSPACE_ENV)
