@@ -4,10 +4,11 @@ This file is the standing brief for every Claude Code session in this repository
 
 ## 0. Which session is this?
 
-Work happens in two kinds of sessions. Do only the one the user names. If no session is named, treat the work as ordinary harness work under Session 1 rules, and never create, inspect, or describe practice challenges.
+Work happens in three kinds of sessions. Do only the one the user names. If no session is named, treat the work as ordinary harness work under Session 1 rules, and never create, inspect, or describe practice challenges.
 
 - **Session 1 — Harness build (attended).** I watch and review everything. It builds the tool and one demo challenge that I'm allowed to fully understand. See §11.
 - **Session 2 — Practice-challenge authoring (unattended).** It runs headless while I'm away and creates the practice challenges I will later solve without knowing the answers. See §12.
+- **Session 3 — Repo gathering (attended).** I choose new practice repos with you, so later Session 2 runs have somewhere to put new challenges. See §14.
 
 The spoiler rules in §3 apply to every session.
 
@@ -70,7 +71,7 @@ Real fixes give realistic bugs and a known-correct repair. They also can't leak 
 
 **Synthetic fallback.** If a practice repo has too few suitable fixes, a challenge may instead use a hand-injected defect on a clean commit. It must be a plausible regression (a boundary condition, a wrong default, state not reset, a filter or transformation that is wrong for one combination of inputs). It must never be a syntax error, an obvious crash, a dependency break, or broken setup instructions. At most a third of the pack may be synthetic. The injection patch is stored privately, and the clean commit serves as the fixed ref.
 
-**Target pack:** 6–10 validated practice challenges across 2–3 repos, with a mix of difficulties, at most 4 per repo, and no two in the same function. Separately, one demo challenge from a different repo.
+**Target pack:** initially 6–10 validated practice challenges across 2–3 repos, with a mix of difficulties, at most 4 per repo, and no two in the same function. Replenish runs (§12) grow the pack beyond that, using repos approved in Session 3 (§14). Separately, one demo challenge from a different repo.
 
 ## 5. Repository selection criteria
 
@@ -220,11 +221,13 @@ claude -p "Do Session 2 as described in CLAUDE.md." \
 Nobody is watching and nobody can answer questions. Make reasonable decisions and log them privately.
 
 1. Keep a private log at `$REPOMENTOR_HOME/pack/AUTHORING_LOG.md` with decisions, candidates considered, and rejections with reasons. If the log already exists, resume from it; re-running this session should continue toward the target, not start over.
-2. Select 2–3 practice repos per §5, not including the demo repo. Pin and baseline each one.
+2. Select 2–3 practice repos per §5, not including the demo repo. Pin and baseline each one. In replenish mode, do not select repos yourself: use only repos already in the pack and repos in `$REPOMENTOR_HOME/pack/APPROVED_REPOS.json` (§14), and re-check each approved repo's baseline before using it.
 3. Find candidate fixes. Accept only defects that are behavioral, deterministic, and observable through the public API or CLI; that were fixed in roughly 1–3 source files and 40 or fewer changed source lines; and that require tracing across at least two modules to diagnose. Reject import-time crashes, packaging or dependency issues, Python-version or platform compatibility, locale or encoding quirks, performance, concurrency or timing, docs-only or typing-only changes, and security fixes.
 4. Build each challenge per §6 and run `repomentor validate`. Fix the challenge or reject it. Never weaken a validation check to get a challenge through.
 5. If you find a harness bug, fix it generically and add a test. Commit messages and code must not reference any practice challenge.
 6. Stop at 10 validated challenges or when candidates run out. The minimum goal is 6.
+
+**Replenish mode.** When launched with "Do Session 2 in replenish mode" (the `/make-challenges` command), first count the validated challenges in the pack. If there are fewer than 6, run normally toward the target above. Otherwise the target is that count plus 5. Stop at the target or when candidates run out. All other rules still apply: at most 4 challenges per repo, no two in the same function, at most a third of the whole pack synthetic, and every challenge must pass `validate`. New ids continue the sequence (after `p10` comes `p11`). Log the run in AUTHORING_LOG.md, and in APPROVED_REPOS.json mark each approved repo as used once it has a challenge. The final output is the same table, covering only this run's new challenges, followed by the pack's total validated count.
 
 **Final output — the only thing I will read.** A spoiler-free table with: id, source repo name, origin (upstream-fix or synthetic), estimated difficulty, time budget, and validation status. After the table: the number of candidates rejected (no details), any harness changes described generically, and anything I need to do. Nothing else.
 
@@ -238,3 +241,15 @@ Nobody is watching and nobody can answer questions. Make reasonable decisions an
 - [ ] `reveal` shows the answer key only when asked.
 - [ ] Failure cases produce explicit, actionable errors.
 - [ ] Session 2 has produced 6–10 validated practice challenges, and I haven't seen inside any of them.
+
+## 14. Session 3 — Repo gathering (attended)
+
+I watch this session (the `/gather-repos` command). Repo names already appear in `repomentor list` and aren't spoilers, but nothing about bugs is.
+
+1. Run `repomentor list` to learn which repos the pack already uses. This is the only pack information you may read. Do not open pack directories or AUTHORING_LOG.md. You may read and write APPROVED_REPOS.json.
+2. Propose about 5 candidate repos that meet §5. Each must differ from the demo and the existing repos in both name and domain (no second library in a domain the pack already covers). Prefer variety.
+3. For each candidate, check and report: SPDX license, non-test source file count and the command used, whether its dependencies install without compilers, and the time and result of its existing test suite at a pinned SHA, run offline in a scratch venv outside this repository.
+4. **Do not look at issues, pull requests, changelogs, or fix commits**, and don't speculate about likely bugs. That is Session 2's job and would spoil challenges.
+5. Give a short tradeoff comparison and **wait for my choice**.
+6. Append the chosen repos to `$REPOMENTOR_HOME/pack/APPROVED_REPOS.json`, a list of objects with: name, url, license, pinned_sha, python_version, source_file_count, count_command, baseline (passed, failed, seconds), approved_on, and status (`approved`, later `used` or `rejected` by Session 2).
+7. Don't commit anything that names a practice repo. Then tell me to run `/make-challenges`.
