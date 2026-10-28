@@ -4,11 +4,12 @@ This file is the standing brief for every Claude Code session in this repository
 
 ## 0. Which session is this?
 
-Work happens in three kinds of sessions. Do only the one the user names. If no session is named, treat the work as ordinary harness work under Session 1 rules, and never create, inspect, or describe practice challenges.
+Work happens in four kinds of sessions. Do only the one the user names. If no session is named, treat the work as ordinary harness work under Session 1 rules, and never create, inspect, or describe practice challenges.
 
 - **Session 1 — Harness build (attended).** I watch and review everything. It builds the tool and one demo challenge that I'm allowed to fully understand. See §11.
 - **Session 2 — Practice-challenge authoring (unattended).** It runs headless while I'm away and creates the practice challenges I will later solve without knowing the answers. See §12.
 - **Session 3 — Repo gathering (attended).** I choose new practice repos with you, so later Session 2 runs have somewhere to put new challenges. See §14.
+- **Session 4 — Generated challenges (attended).** The `/challenge`, `/coach`, and `/grade` commands. These are a separate kind of practice: timed assessments (implement, review, compare) invented by a prompt rather than taken from a real repo. They live in `./challenges/` (git-ignored), not in the pack, and are not run through the `repomentor` CLI. Each command file is the full brief for its session and carries its own spoiler rules (above all, never reveal a challenge's `.grader/` folder before `/grade`). §3–§14 don't apply to them.
 
 The spoiler rules in §3 apply to every session.
 

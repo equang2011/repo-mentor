@@ -5,6 +5,22 @@ unfamiliar open-source Python repo, checked out at the commit just before a real
 bug fix, plus a customer-style ticket. You reproduce, diagnose, and fix the bug, and
 hidden regression tests grade your fix.
 
+## Two ways to practice
+
+Open Claude Code in this repo's root. Both kinds of practice start from here.
+
+| | Real-repo debugging | Generated assessments |
+|---|---|---|
+| What you get | An unfamiliar repo with a real bug and a ticket | A timed exercise: implement a function, review buggy code, compare two answers |
+| Get a challenge | `repomentor list`, then `repomentor start <id>` | `/challenge [minutes=35] [difficulty=medium] [mode=exam\|learn] [focus]` |
+| Get help while working | (limited assistant, see the practice protocol) | `/coach <folder>` (learn mode) |
+| Grade | `repomentor grade <session-id>` | `/grade <folder>` |
+| See the answers | `repomentor reveal <session-id>` | at the end of `GRADE.md` |
+| Where it lives | `~/repomentor-workspaces/` | `./challenges/` (git-ignored) |
+| Add more | `/gather-repos`, then `/make-challenges` | run `/challenge` again |
+
+Don't open a generated challenge's `.grader/` folder before grading; it's the answer key.
+
 ## Install
 
 Requires Python 3.10+ and git on PATH.
